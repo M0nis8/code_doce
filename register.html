@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #36979296;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #DEF2F1;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px; /* Reduced from 400px */
+            max-width: 90%;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px; /* Reduced from 30px */
+            font-size: 1.5rem; /* Slightly smaller heading */
+        }
+        .form-group {
+            margin-bottom: 15px; /* Reduced from 20px */
+        }
+        label {
+            display: block;
+            margin-bottom: 5px; /* Reduced from 8px */
+            font-weight: 600;
+            color: #555;
+            font-size: 14px; /* Slightly smaller text */
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px; /* Reduced from 10px */
+            border: 1px solid #9bcdbe;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px; /* Reduced from 16px */
+        }
+        input[type="radio"] {
+            margin-right: 8px;
+        }
+        .radio-group {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .radio-label {
+            display: inline;
+            margin-right: 15px; /* Reduced from 20px */
+            font-size: 14px;
+        }
+        button {
+            background-color: #36979296;
+            color: white;
+            border: none;
+            padding: 10px 15px; /* Reduced from 12px 20px */
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px; /* Reduced from 16px */
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0c4542a4;
+        }
+        .password-requirements {
+            font-size: 11px; /* Reduced from 12px */
+            color: #666;
+            margin-top: 3px; /* Reduced from 5px */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Login Form</h2>
+        <form id="loginForm" onsubmit="return validateForm()">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label>User Type</label>
+                <div class="radio-group">
+                    <input type="radio" id="student" name="userType" value="student" checked>
+                    <label for="student" class="radio-label">Student</label>
+                    
+                    <input type="radio" id="authority" name="userType" value="authority">
+                    <label for="authority" class="radio-label">Authority</label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <div class="password-requirements">Password must be at least 8 characters long</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+            
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <script>
+        function validateForm() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validate password length
+    if (password.length < 8) {
+        alert('Password must be at least 8 characters long');
+        return false;
+    }
+    
+    // Validate password match
+    if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return false;
+    }
+    
+    // Get the selected user type
+    const userType = document.querySelector('input[name="userType"]:checked').value;
+    
+    // Form is valid, handle redirection based on user type
+    if (userType === 'student') {
+        // Redirect to student page
+        window.location.href = 'student.html';
+    } else if (userType === 'authority') {
+        // Redirect to authority page
+        window.location.href = 'admin.html';
+    }
+    
+    // Prevent the default form submission
+    return false;
+}
+    </script>
+</body>
+</html>

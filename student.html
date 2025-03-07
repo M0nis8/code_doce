@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosijav Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Smaller Popup with Green Theme */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 1000;
+        }
+
+        .popup-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 400px;
+            max-height: 80vh; /* Maximum height as percentage of viewport height */
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            cursor: move; /* Indicate it's draggable */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Hide overflow for container */
+        }
+
+        /* Drag handle for popup */
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .popup-handle {
+            cursor: move;
+            color: #2e7d32;
+            font-weight: bold;
+            font-size: 14px;
+            flex-grow: 1;
+        }
+
+        .popup-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #2e7d32;
+        }
+
+        .popup-content {
+            flex: 1;
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding-right: 5px; /* Space for scrollbar */
+        }
+
+        .event-image-large {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            flex-shrink: 0; /* Prevent image from shrinking */
+        }
+
+        .event-details-content h2 {
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #2e7d32;
+        }
+
+        .event-date {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .event-description {
+            margin-bottom: 12px;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 12px;
+            flex-shrink: 0; /* Prevent tabs from shrinking */
+        }
+
+        .tab {
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid #2e7d32;
+            color: #2e7d32;
+        }
+
+        .tab-content {
+            display: none;
+            overflow-y: auto; /* Enable vertical scrolling within tab content */
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .contact-info {
+            margin-bottom: 12px;
+        }
+
+        .contact-info h3 {
+            font-size: 14px;
+            margin-top: 0;
+            margin-bottom: 6px;
+            color: #2e7d32;
+        }
+
+        .contact-item {
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .contact-item strong {
+            display: inline-block;
+            width: 70px;
+            color: #388e3c;
+        }
+
+        .registration-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            font-size: 12px;
+            color: #388e3c;
+        }
+
+        .form-group input, .form-group select {
+            padding: 6px;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+        }
+
+        .phone-input {
+            display: flex;
+            gap: 5px;
+        }
+
+        .phone-input select {
+            width: 80px;
+        }
+
+        .phone-input input {
+            flex: 1;
+        }
+
+        .submit-btn {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 7px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #1b5e20;
+        }
+
+        /* Scrollbar styling */
+        .popup-content::-webkit-scrollbar,
+        .tab-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .popup-content::-webkit-scrollbar-thumb,
+        .tab-content::-webkit-scrollbar-thumb {
+            background-color: #c8e6c9;
+            border-radius: 3px;
+        }
+
+        .popup-content::-webkit-scrollbar-thumb:hover,
+        .tab-content::-webkit-scrollbar-thumb:hover {
+            background-color: #2e7d32;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .popup-container {
+                width: 90%;
+                max-height: 80vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard"> <!-- Sidebar -->
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">Mosijav</div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="profile-info"> <img src="whiteuserpng.png" alt="Profile Icon" class="profile-icon">
+                    <p>Username</p>
+                </div> <a href="#events" class="sidebar-link">Events</a>
+            </div>
+        </div> <!-- Main content -->
+        <div class="content">
+            <header> <!-- Hamburger icon to toggle sidebar -->
+                <div id="sidebar-toggle" class="sidebar-toggle"> &#9776; <!-- This is the hamburger icon --> </div>
+                <div class="nav-links"> <a href="#events" class="nav-link">Events</a> </div>
+            </header>
+            <div class="welcome-card">
+                <h1>Welcome to Mosijav Campus Events</h1>
+                <p>Explore events, resources, and more on our interactive platform.</p>
+            </div>
+            <div class="events-container" id="events">
+                <div class="events-header">
+                    <h2>Featured Events</h2> <a id="view-all-btn" class="view-all">View All</a>
+                </div>
+                <div class="event-list"> <!-- First 3 events (visible by default) -->
+                    <div class="event-card" data-organizer="John Smith" data-organizer-email="john.smith@mosijav.edu" data-organizer-phone="+1-555-123-4567" data-description="Celebrate the diversity of cultures with performances, exhibitions, and interactive activities. Join us for a day full of music, dance, art, and culinary experiences from around the world.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/1/400/240"
+                                alt="Annual Cultural Festival" /> </div>
+                        <div class="event-details">
+                            <h3>Annual Cultural Festival</h3>
+                            <div class="event-date">March 15, 2025</div>
+                            <p class="event-desc">Celebrate the diversity of cultures with performances, exhibitions,
+                                and interactive activities.</p>
+                        </div>
+                    </div>
+                    <div class="event-card" data-organizer="Emily Chen" data-organizer-email="emily.chen@mosijav.edu" data-organizer-phone="+1-555-234-5678" data-description="Develop essential leadership skills with industry experts and interactive sessions. Learn about effective communication, conflict resolution, team building, and strategic planning.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/180/400/240"
+                                alt="Leadership Workshop" /> </div>
+                        <div class="event-details">
+                            <h3>Leadership Workshop</h3>
+                            <div class="event-date">March 22, 2025</div>
+                            <p class="event-desc">Develop essential leadership skills with industry experts and
+                                interactive sessions.</p>
+                        </div>
+                    </div>
+                    <div class="event-card" data-organizer="Michael Lee" data-organizer-email="michael.lee@mosijav.edu" data-organizer-phone="+1-555-345-6789" data-description="Explore the latest technological advancements and network with industry professionals. The symposium will feature keynote speakers, panel discussions, and hands-on workshops on emerging technologies.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/48/400/240" alt="Tech Symposium" />
+                        </div>
+                        <div class="event-details">
+                            <h3>Tech Symposium</h3>
+                            <div class="event-date">April 5, 2025</div>
+                            <p class="event-desc">Explore the latest technological advancements and network with
+                                industry professionals.</p>
+                        </div>
+                    </div> <!-- Additional events (hidden by default) -->
+                    <div class="event-card hidden additional-event" data-organizer="Robert Brown" data-organizer-email="robert.brown@mosijav.edu" data-organizer-phone="+1-555-456-7890" data-description="Join leading researchers and academics for presentations on cutting-edge research across disciplines. The conference will feature keynote speeches, poster sessions, and networking opportunities.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/370/400/240"
+                                alt="Research Conference" /> </div>
+                        <div class="event-details">
+                            <h3>Research Conference</h3>
+                            <div class="event-date">April 18-20, 2025</div>
+                            <p class="event-desc">Join leading researchers and academics for presentations on
+                                cutting-edge research across disciplines.</p>
+                        </div>
+                    </div>
+                    <div class="event-card hidden additional-event" data-organizer="Lisa Martinez" data-organizer-email="lisa.martinez@mosijav.edu" data-organizer-phone="+1-555-567-8901" data-description="Connect with top employers from various industries seeking talented graduates and professionals. Bring your resume and be prepared for on-the-spot interviews with leading companies.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/225/400/240" alt="Career Fair" />
+                        </div>
+                        <div class="event-details">
+                            <h3>Spring Career Fair</h3>
+                            <div class="event-date">March 30, 2025</div>
+                            <p class="event-desc">Connect with top employers from various industries seeking talented
+                                graduates and professionals.</p>
+                        </div>
+                    </div>
+                    <div class="event-card hidden additional-event" data-organizer="Daniel Rodriguez" data-organizer-email="daniel.rodriguez@mosijav.edu" data-organizer-phone="+1-555-678-9012" data-description="Discuss sustainable practices and environmental conservation with experts and activists on Earth Day. The summit will include workshops, panel discussions, and community action planning.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/116/400/240"
+                                alt="Environmental Summit" /> </div>
+                        <div class="event-details">
+                            <h3>Environmental Summit</h3>
+                            <div class="event-date">April 22, 2025</div>
+                            <p class="event-desc">Discuss sustainable practices and environmental conservation with
+                                experts and activists on Earth Day.</p>
+                        </div>
+                    </div>
+                    <div class="event-card hidden additional-event" data-organizer="Rebecca Hall" data-organizer-email="rebecca.hall@mosijav.edu" data-organizer-phone="+1-555-789-0123" data-description="Explore ethical implications of artificial intelligence in society with industry leaders and philosophers. The panel will address concerns about privacy, bias, accountability, and the future of work.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/100/400/240"
+                                alt="AI & Ethics Panel" /> </div>
+                        <div class="event-details">
+                            <h3>AI & Ethics Panel Discussion</h3>
+                            <div class="event-date">May 8, 2025</div>
+                            <p class="event-desc">Explore ethical implications of artificial intelligence in society
+                                with industry leaders and philosophers.</p>
+                        </div>
+                    </div>
+                    <div class="event-card hidden additional-event" data-organizer="Christopher Adams" data-organizer-email="christopher.adams@mosijav.edu" data-organizer-phone="+1-555-890-1234" data-description="Put your coding skills to the test in this intensive collaborative programming event with amazing prizes. Form teams and develop innovative solutions to real-world problems.">
+                        <div class="event-image"> <img src="https://picsum.photos/id/197/400/240" alt="Hackathon" />
+                        </div>
+                        <div class="event-details">
+                            <h3>48-Hour Hackathon</h3>
+                            <div class="event-date">May 15-17, 2025</div>
+                            <p class="event-desc">Put your coding skills to the test in this intensive collaborative
+                                programming event with amazing prizes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Moveable Popup with Green Theme -->
+    <div class="popup-overlay" id="eventPopup">
+        <div class="popup-container" id="draggablePopup">
+            <div class="popup-header">
+                <div class="popup-handle" id="popupHandle">Events</div>
+                <span class="popup-close" id="popupClose">&times;</span>
+            </div>
+            
+            <img id="popupEventImage" src="" alt="Event Image" class="event-image-large">
+            
+            <div class="tabs">
+                <div class="tab active" id="detailsTab">Details</div>
+                <div class="tab" id="registerTab">Register</div>
+            </div>
+            
+            <div class="popup-content">
+                <!-- Details Tab Content -->
+                <div class="tab-content active" id="detailsContent">
+                    <div class="event-details-content">
+                        <h2 id="eventTitle">Event Title</h2>
+                        <div id="eventDate" class="event-date">Event Date</div>
+                        <div id="eventDescription" class="event-description">
+                            Event description will appear here.
+                        </div>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h3>Contact Information</h3>
+                        <div class="contact-item">
+                            <strong>Organizer:</strong> <span id="eventOrganizer">Name</span>
+                        </div>
+                        <div class="contact-item">
+                            <strong>Email:</strong> <span id="organizerEmail">email@example.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <strong>Phone:</strong> <span id="organizerPhone">+1-555-123-4567</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Registration Tab Content -->
+                <div class="tab-content" id="registerContent">
+                    <form action="connect.php" method="post" id="eventRegistrationForm" >
+                        <div class="form-group">
+                            <label for="fullName">Full Name *</label>
+                            <input type="text" id="fullName" name="fullName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <div class="phone-input">
+                                <select id="countryCode" name="countryCode" required>
+                                    <option value="+1">+1 (USA)</option>
+                                    <option value="+44">+44 (UK)</option>
+                                    <option value="+91">+91 (IND)</option>
+                                    <option value="+61">+61 (AUS)</option>
+                                    <option value="+86">+86 (CHN)</option>
+                                    <option value="+33">+33 (FRA)</option>
+                                </select>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="collegeName">College Name *</label>
+                            <input type="text" id="collegeName" name="collegeName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="course">Course *</label>
+                            <input type="text" id="course" name="course" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="studyYear">Year of Study *</label>
+                            <select id="studyYear" name="studyYear" required>
+                                <option value="">Select Year</option>
+                                <option value="1">1st Year</option>
+                                <option value="2">2nd Year</option>
+                                <option value="3">3rd Year</option>
+                                <option value="4">4th Year</option>
+                                <option value="5">5th Year</option>
+                                <option value="graduate">Graduate</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" value="Submit Application" class="submit-btn">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Tab functionality
+        document.getElementById('detailsTab').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('registerTab').classList.remove('active');
+            document.getElementById('detailsContent').classList.add('active');
+            document.getElementById('registerContent').classList.remove('active');
+        });
+        
+        document.getElementById('registerTab').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('detailsTab').classList.remove('active');
+            document.getElementById('registerContent').classList.add('active');
+            document.getElementById('detailsContent').classList.remove('active');
+        });
+        
+        // Event cards click functionality
+        document.querySelectorAll('.event-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Get event details from the card and data attributes
+                const eventTitle = this.querySelector('h3').textContent;
+                const eventDate = this.querySelector('.event-date').textContent;
+                const eventImage = this.querySelector('img').src;
+                const eventDescription = this.getAttribute('data-description');
+                const organizer = this.getAttribute('data-organizer');
+                const organizerEmail = this.getAttribute('data-organizer-email');
+                const organizerPhone = this.getAttribute('data-organizer-phone');
+                
+                // Update popup content
+                document.getElementById('eventTitle').textContent = eventTitle;
+                document.getElementById('eventDate').textContent = eventDate;
+                document.getElementById('popupEventImage').src = eventImage;
+                document.getElementById('eventDescription').textContent = eventDescription;
+                document.getElementById('eventOrganizer').textContent = organizer;
+                document.getElementById('organizerEmail').textContent = organizerEmail;
+                document.getElementById('organizerPhone').textContent = organizerPhone;
+                
+                // Reset to details tab by default
+                document.getElementById('detailsTab').click();
+                
+                // Center the popup (reset position)
+                const popup = document.getElementById('draggablePopup');
+                popup.style.top = '50%';
+                popup.style.left = '50%';
+                popup.style.transform = 'translate(-50%, -50%)';
+                
+                // Show the popup
+                document.getElementById('eventPopup').style.display = 'block';
+            });
+        });
+        
+        // Close popup
+        document.getElementById('popupClose').addEventListener('click', function() {
+            document.getElementById('eventPopup').style.display = 'none';
+        });
+        
+        // Close popup when clicking outside
+        document.getElementById('eventPopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+        
+        // Form submission
+        document.getElementById('eventRegistrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Here you would normally handle the form submission via AJAX
+            // For now, we'll just show an alert and close the popup
+            alert('Registration submitted successfully!');
+            document.getElementById('eventPopup').style.display = 'none';
+            this.reset();
+        });
+        
+        // Existing view all functionality
+        document.getElementById('view-all-btn').addEventListener('click', function() {
+            const additionalEvents = document.querySelectorAll('.additional-event');
+            additionalEvents.forEach(event => {
+                event.classList.toggle('hidden');
+            });
+            
+            this.textContent = this.textContent === 'View All' ? 'Show Less' : 'View All';
+        });
+        
+        // Sidebar toggle functionality
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+        
+        // Make the popup draggable
+        const dragElement = function(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            // Get the handle element
+            const handle = document.getElementById('popupHandle');
+            
+            if (handle) {
+                // If present, the header is where you move the DIV from
+                handle.onmousedown = dragMouseDown;
+            } else {
+                // Otherwise, move the DIV from anywhere inside the DIV
+                elmnt.onmousedown = dragMouseDown;
+            }
+
+            
+            
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // Get the cursor position at startup
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                // Call a function whenever the cursor moves
+                document.onmousemove = elementDrag;
+            }
+            
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                
+                // Remove transform property to allow normal positioning
+                elmnt.style.transform = 'none';
+                
+                // Calculate the new cursor position
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                
+                // Set the element's new position
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+            
+            function closeDragElement() {
+                // Stop moving when mouse button is released
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        };
+        
+        // Initialize the drag function
+        dragElement(document.getElementById("draggablePopup"));
+    </script>
+</body>
+
+</html>
